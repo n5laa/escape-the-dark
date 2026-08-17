@@ -6268,8 +6268,15 @@ function drawDarkness() {
 
         config.lightRadius *
 
+        config.lightRadius *
+
         upgradeMultiplier;
 
+
+    if  (window.innerWidth < 1000) {
+
+        radius *= 1.65;
+    }
 
     if (
         config.flicker
@@ -6332,13 +6339,13 @@ function drawDarkness() {
 
     gradient.addColorStop(
         0.70,
-        "rgba(0,0,0,0.70)"
+        "rgba(0,0,0,0.55)"
     );
 
 
     gradient.addColorStop(
         1,
-        "rgba(0,0,0,0.975)"
+        "rgba(0,0,0,0.90)"
     );
 
 
