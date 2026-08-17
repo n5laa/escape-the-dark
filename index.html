@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    >
+
+    <meta
+        name="theme-color"
+        content="#050706"
+    >
+
+    <title>Escape The Dark</title>
+
+    <link
+        rel="stylesheet"
+        href="style.css"
+    >
+</head>
+
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+
+    <!-- رسالة تدوير الجوال -->
+    <div
+        id="portraitHint"
+        class="portrait-hint hidden"
+    >
+        <div>
+
+            <h2>
+                لف الجوال بالعرض
+            </h2>
+
+            <p>
+                بهذا الشكل ستكون اللعبة أوضح وأسهل
+            </p>
+
+        </div>
+    </div>
+
+
+    <!-- القائمة الرئيسية -->
+    <div
+        id="mainMenu"
+        class="screen"
+    >
+
+        <div class="panel main-panel">
+
+            <div class="eyebrow">
+                لعبة هروب 2D
+            </div>
+
+            <h1 class="game-title">
+                ESCAPE THE DARK
+            </h1>
+
+            <p class="subtitle">
+                اجمع المفاتيح، خذ الجوائز، واهرب من الظلام
+            </p>
+
+
+            <div class="stats-row">
+
+                <div class="stat-card">
+
+                    <span>
+                        عملاتك
+                    </span>
+
+                    <strong id="mainCoins">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        المراحل المفتوحة
+                    </span>
+
+                    <strong id="mainUnlocked">
+                        1 / 6
+                    </strong>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>
+                        النجوم
+                    </span>
+
+                    <strong id="mainStars">
+                        0 / 18
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <button
+                id="continueBtn"
+                class="btn btn-primary"
+            >
+                متابعة اللعب
+            </button>
+
+
+            <div class="button-grid">
+
+                <button
+                    id="levelsBtn"
+                    class="btn btn-secondary"
+                >
+                    اختيار المراحل
+                </button>
+
+
+                <button
+                    id="storeBtn"
+                    class="btn btn-secondary"
+                >
+                    المتجر
+                </button>
+
+            </div>
+
+
+            <div class="button-grid">
+
+                <button
+                    id="fullscreenBtn"
+                    class="btn btn-ghost"
+                >
+                    ملء الشاشة
+                </button>
+
+
+                <button
+                    id="soundBtn"
+                    class="btn btn-ghost"
+                >
+                    الصوت: شغال
+                </button>
+
+            </div>
+
+
+            <p class="controls-note">
+
+                لابتوب:
+                WASD
+                أو الأسهم
+                +
+                Shift
+                للركض
+
+                <br>
+
+                جوال:
+                عصا التحكم يسار
+                +
+                زر الركض يمين
+
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- قائمة المراحل -->
+    <div
+        id="levelsMenu"
+        class="screen hidden"
+    >
+
+        <div class="panel wide-panel">
+
+            <div class="screen-title-row">
+
+                <div>
+
+                    <div class="eyebrow">
+                        اختر المرحلة التي تريد لعبها
+                    </div>
+
+                    <h2>
+                        اختيار المرحلة
+                    </h2>
+
+                </div>
+
+
+                <div class="top-wallet">
+
+                    العملات:
+
+                    <b id="levelsCoins">
+                        0
+                    </b>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="levelsContainer"
+                class="levels-grid"></div>
+
+
+            <button
+                class="btn btn-secondary back-btn"
+                data-back
+            >
+                رجوع
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- المتجر -->
+    <div
+        id="storeMenu"
+        class="screen hidden"
+    >
+
+        <div class="panel wide-panel">
+
+            <div class="screen-title-row">
+
+                <div>
+
+                    <div class="eyebrow">
+                        طوّر نفسك قبل المطاردة
+                    </div>
+
+                    <h2>
+                        المتجر
+                    </h2>
+
+                </div>
+
+
+                <div class="top-wallet">
+
+                    عملاتك:
+
+                    <b id="storeCoins">
+                        0
+                    </b>
+
+                </div>
+
+            </div>
+
+
+            <div class="store-grid">
+
+
+                <!-- السرعة -->
+                <article class="store-card">
+
+                    <div class="store-icon">
+                        S
+                    </div>
+
+                    <h3>
+                        سرعة اللاعب
+                    </h3>
+
+                    <p>
+                        زيادة دائمة في سرعة الحركة
+                    </p>
+
+                    <div class="level-line">
+
+                        المستوى:
+
+                        <b id="speedLevel">
+                            0
+                        </b>
+
+                        / 5
+
+                    </div>
+
+                    <button
+                        class="buy-button"
+                        data-upgrade="speed"
+                    >
+                        شراء - 120
+                    </button>
+
+                </article>
+
+
+                <!-- الكشاف -->
+                <article class="store-card">
+
+                    <div class="store-icon">
+                        L
+                    </div>
+
+                    <h3>
+                        قوة الكشاف
+                    </h3>
+
+                    <p>
+                        يزيد مساحة الرؤية في الظلام
+                    </p>
+
+                    <div class="level-line">
+
+                        المستوى:
+
+                        <b id="lightLevel">
+                            0
+                        </b>
+
+                        / 5
+
+                    </div>
+
+                    <button
+                        class="buy-button"
+                        data-upgrade="light"
+                    >
+                        شراء - 150
+                    </button>
+
+                </article>
+
+
+                <!-- القلوب -->
+                <article class="store-card">
+
+                    <div class="store-icon">
+                        H
+                    </div>
+
+                    <h3>
+                        قلب إضافي
+                    </h3>
+
+                    <p>
+                        تبدأ المرحلة بعدد قلوب أكبر
+                    </p>
+
+                    <div class="level-line">
+
+                        المستوى:
+
+                        <b id="healthLevel">
+                            0
+                        </b>
+
+                        / 2
+
+                    </div>
+
+                    <button
+                        class="buy-button"
+                        data-upgrade="health"
+                    >
+                        شراء - 240
+                    </button>
+
+                </article>
+
+
+                <!-- طاقة الركض -->
+                <article class="store-card">
+
+                    <div class="store-icon">
+                        R
+                    </div>
+
+                    <h3>
+                        طاقة الركض
+                    </h3>
+
+                    <p>
+                        يزيد مدة الركض قبل نفاد الطاقة
+                    </p>
+
+                    <div class="level-line">
+
+                        المستوى:
+
+                        <b id="staminaLevel">
+                            0
+                        </b>
+
+                        / 5
+
+                    </div>
+
+                    <button
+                        class="buy-button"data-upgrade="stamina"
+                    >
+                        شراء - 130
+                    </button>
+
+                </article>
+
+
+                <!-- الدرع -->
+                <article class="store-card">
+
+                    <div class="store-icon">
+                        D
+                    </div>
+
+                    <h3>
+                        درع البداية
+                    </h3>
+
+                    <p>
+                        فرصة أن تبدأ المرحلة والدرع مفعّل
+                    </p>
+
+                    <div class="level-line">
+
+                        المستوى:
+
+                        <b id="shieldLevel">
+                            0
+                        </b>
+
+                        / 3
+
+                    </div>
+
+                    <button
+                        class="buy-button"
+                        data-upgrade="shield"
+                    >
+                        شراء - 200
+                    </button>
+
+                </article>
+
+            </div>
+
+
+            <p
+                id="storeMessage"
+                class="store-message"
+            ></p>
+
+
+            <button
+                class="btn btn-secondary back-btn"
+                data-back
+            >
+                رجوع
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- واجهة اللعب -->
+    <div
+        id="gameHUD"
+        class="hidden"
+    >
+
+        <div class="hud hud-right">
+
+            <div
+                id="hudLevel"
+                class="hud-title"
+            >
+                المرحلة: 1
+            </div>
+
+
+            <div id="hudHealth">
+                القلوب: 3
+            </div>
+
+
+            <div id="hudKeys">
+                المفاتيح: 0 / 3
+            </div>
+
+
+            <div id="hudCoins">
+                العملات: 0
+            </div>
+
+
+            <div id="hudTime">
+                الوقت: 0
+            </div>
+
+        </div>
+
+
+        <div class="hud hud-center">
+
+            <div class="bar-label">
+
+                <span>
+                    طاقة الركض
+                </span>
+
+                <span id="staminaText">
+                    100%
+                </span>
+
+            </div>
+
+
+            <div class="bar">
+
+                <div
+                    id="staminaFill"
+                    class="bar-fill"
+                ></div>
+
+            </div>
+
+        </div>
+
+
+        <button
+            id="pauseBtn"
+            class="pause-btn"
+        >
+            إيقاف
+        </button>
+
+    </div>
+
+
+    <!-- رسالة هدف المرحلة -->
+    <div
+        id="objectiveBanner"
+        class="objective-banner hidden"
+    ></div>
+
+
+    <!-- رسالة صغيرة -->
+    <div
+        id="toast"
+        class="toast hidden"
+    >
+        حصلت على جائزة
+    </div>
+
+
+    <!-- شاشة نهاية المرحلة -->
+    <div
+        id="endScreen"
+        class="screen hidden"
+    >
+
+        <div class="panel end-panel">
+
+            <div
+                class="eyebrow"
+                id="endEyebrow"
+            >
+                انتهت المرحلة
+            </div>
+
+
+            <h2 id="endTitle">
+                أنهيت المرحلة
+            </h2>
+
+
+            <p id="endMessage"></p>
+
+
+            <div
+                id="starsText"
+                class="stars-text"
+            ></div>
+
+
+            <p
+                id="rewardText"
+                class="reward-text"
+            ></p>
+
+
+            <button
+                id="nextLevelBtn"
+                class="btn btn-primary"
+            >
+                المرحلة التالية
+            </button>
+
+
+            <button
+                id="retryBtn"
+                class="btn btn-secondary"
+            >
+                إعادة المرحلة
+            </button>
+
+
+            <button
+                id="homeBtn"
+                class="btn btn-ghost"
+            >
+                القائمة الرئيسية
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- شاشة الإيقاف -->
+    <div
+        id="pauseScreen"
+        class="screen hidden"
+    >
+
+        <div class="panel small-panel">
+
+            <div class="eyebrow">
+                استراحة
+            </div><h2>
+                اللعبة متوقفة
+            </h2>
+
+
+            <button
+                id="resumeBtn"
+                class="btn btn-primary"
+            >
+                متابعة اللعب
+            </button>
+
+
+            <button
+                id="pauseHomeBtn"
+                class="btn btn-secondary"
+            >
+                القائمة الرئيسية
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- نهاية اللعبة -->
+    <div
+        id="finishScreen"
+        class="screen hidden"
+    >
+
+        <div class="panel end-panel">
+
+            <div class="eyebrow">
+                أحسنت
+            </div>
+
+
+            <h2>
+                أنهيت اللعبة
+            </h2>
+
+
+            <p id="finishStats"></p>
+
+
+            <button
+                id="finishHomeBtn"
+                class="btn btn-primary"
+            >
+                القائمة الرئيسية
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- Joystick -->
+    <div
+        id="joystick"
+        class="hidden"
+    >
+
+        <div id="joystickKnob"></div>
+
+    </div>
+
+
+    <!-- زر الركض -->
+    <button
+        id="sprintBtn"
+        class="sprint-btn hidden"
+    >
+
+        <span>
+            اركض
+        </span>
+
+        <small>
+            ركض
+        </small>
+
+    </button>
+
+
+    <script src="game.js"></script>
+
+</body>
+
+</html>
