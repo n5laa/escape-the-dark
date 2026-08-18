@@ -2,16 +2,14 @@
 "use strict";
 
 // =====================================================
-// ESCAPE THE DARK - V1
+// ESCAPE THE DARK - V1.1
+// نسخة مطورة: مطاردات أقوى + سرعة ثابتة بين الأجهزة
 // =====================================================
 
 var canvas = document.getElementById("gameCanvas");
 var ctx = canvas.getContext("2d");
 
-// =====================================================
 // عناصر الواجهة
-// =====================================================
-
 var mainMenu = document.getElementById("mainMenu");
 var levelsMenu = document.getElementById("levelsMenu");
 var storeMenu = document.getElementById("storeMenu");
@@ -29,21 +27,16 @@ var soundBtn = document.getElementById("soundBtn");
 var nextLevelBtn = document.getElementById("nextLevelBtn");
 var retryBtn = document.getElementById("retryBtn");
 var homeBtn = document.getElementById("homeBtn");
-
 var pauseBtn = document.getElementById("pauseBtn");
 var resumeBtn = document.getElementById("resumeBtn");
 var pauseHomeBtn = document.getElementById("pauseHomeBtn");
-
 var finishHomeBtn = document.getElementById("finishHomeBtn");
 
 var levelsContainer = document.getElementById("levelsContainer");
-
 var mainCoins = document.getElementById("mainCoins");
 var mainUnlocked = document.getElementById("mainUnlocked");
 var mainStars = document.getElementById("mainStars");
-
 var levelsCoins = document.getElementById("levelsCoins");
-
 var storeCoins = document.getElementById("storeCoins");
 var storeMessage = document.getElementById("storeMessage");
 
@@ -58,7 +51,6 @@ var hudHealth = document.getElementById("hudHealth");
 var hudKeys = document.getElementById("hudKeys");
 var hudCoins = document.getElementById("hudCoins");
 var hudTime = document.getElementById("hudTime");
-
 var staminaText = document.getElementById("staminaText");
 var staminaFill = document.getElementById("staminaFill");
 
@@ -67,7 +59,6 @@ var endTitle = document.getElementById("endTitle");
 var endMessage = document.getElementById("endMessage");
 var starsText = document.getElementById("starsText");
 var rewardText = document.getElementById("rewardText");
-
 var finishStats = document.getElementById("finishStats");
 
 var objectiveBanner = document.getElementById("objectiveBanner");
@@ -76,215 +67,130 @@ var portraitHint = document.getElementById("portraitHint");
 
 var joystick = document.getElementById("joystick");
 var joystickKnob = document.getElementById("joystickKnob");
-
 var sprintBtn = document.getElementById("sprintBtn");
 
-
-// =====================================================
 // إعداد الشاشة
-// =====================================================
-
 function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
 
-
 function clamp(value, min, max) {
-    return Math.max(
-        min,
-        Math.min(
-            max,
-            value
-        )
-    );
+    return Math.max(min, Math.min(max, value));
 }
-
 
 function screenMin() {
-    return Math.min(
-        canvas.width,
-        canvas.height
-    );
+    return Math.min(canvas.width, canvas.height);
 }
 
-
 function updateOrientationHint() {
-
     var isPhonePortrait =
         window.innerWidth < 600 &&
         window.innerHeight > window.innerWidth;
 
-    if (
-        isPhonePortrait &&
-        gameRunning
-    ) {
-
+    if (isPhonePortrait && gameRunning) {
         portraitHint.classList.add("show");
         portraitHint.classList.remove("hidden");
-
     } else {
-
         portraitHint.classList.remove("show");
         portraitHint.classList.add("hidden");
-
     }
-
 }
-
 
 resizeCanvas();
 
+window.addEventListener("resize", function () {
+    resizeCanvas();
+    updateOrientationHint();
 
-window.addEventListener(
-    "resize",
-    function () {
+    if (gameRunning && player) {
+        player.x = clamp(
+            player.x,
+            0,
+            canvas.width - player.width
+        );
 
-        resizeCanvas();
-
-        updateOrientationHint();
-
-        if (
-            gameRunning &&
-            player
-        ) {
-
-            player.x =
-                clamp(
-                    player.x,
-                    0,
-                    canvas.width -
-                    player.width
-                );
-
-            player.y =
-                clamp(
-                    player.y,
-                    0,
-                    canvas.height -
-                    player.height
-                );
-
-        }
-
+        player.y = clamp(
+            player.y,
+            0,
+            canvas.height - player.height
+        );
     }
-);
+});
 
-
-// =====================================================
 // الحفظ
-// =====================================================
-
-var SAVE_KEY =
-    "escapeDarkSaveV2";
-
+var SAVE_KEY = "escapeDarkSaveV2";
 
 var defaultSave = {
-
     coins: 0,
-
     unlocked: 1,
-
     sound: true,
 
     stars: {
-
         1: 0,
         2: 0,
         3: 0,
         4: 0,
         5: 0,
         6: 0
-
     },
 
     upgrades: {
-
         speed: 0,
-
         light: 0,
-
         health: 0,
-
         stamina: 0,
-
         shield: 0
-
     }
-
 };
 
-
 function cloneDefaultSave() {
-
     return JSON.parse(
-        JSON.stringify(
-            defaultSave
-        )
+        JSON.stringify(defaultSave)
     );
-
 }
 
-
 function loadSave() {
-
     try {
-
         var raw =
             localStorage.getItem(
                 SAVE_KEY
             );
 
-
         if (!raw) {
-
             return cloneDefaultSave();
-
         }
-
 
         var data =
             JSON.parse(raw);
 
-
         var result =
             cloneDefaultSave();
 
-
         result.coins =
-            Number(
-                data.coins
-            ) || 0;
-
+            Number(data.coins) || 0;
 
         result.unlocked =
             clamp(
-                Number(
-                    data.unlocked
-                ) || 1,
+                Number(data.unlocked) || 1,
                 1,
                 6
             );
 
-
         result.sound =
             data.sound !== false;
 
-
         var i;
-
 
         for (
             i = 1;
             i <= 6;
             i++
         ) {
-
             if (
                 data.stars &&
                 data.stars[i] !== undefined
             ) {
-
                 result.stars[i] =
                     clamp(
                         Number(
@@ -293,65 +199,47 @@ function loadSave() {
                         0,
                         3
                     );
-
             }
-
         }
 
-
         var names = [
-
             "speed",
             "light",
             "health",
             "stamina",
             "shield"
-
         ];
-
 
         for (
             i = 0;
             i < names.length;
             i++
         ) {
-
             var name =
                 names[i];
-
 
             if (
                 data.upgrades &&
                 data.upgrades[name] !== undefined
             ) {
-
                 result.upgrades[name] =
                     Number(
                         data.upgrades[name]
                     ) || 0;
-
             }
-
         }
-
 
         return result;
 
     } catch (error) {
-
         return cloneDefaultSave();
-
     }
-
 }
-
 
 var saveData =
     loadSave();
 
-
 function saveGame() {
-
     localStorage.setItem(
         SAVE_KEY,
         JSON.stringify(
@@ -360,33 +248,23 @@ function saveGame() {
     );
 
     updateMenus();
-
 }
 
-
 function totalStars() {
-
     var total = 0;
-
     var i;
-
 
     for (
         i = 1;
         i <= 6;
         i++
     ) {
-
         total +=
             saveData.stars[i] || 0;
-
     }
 
-
     return total;
-
 }
-
 
 // =====================================================
 // إعدادات المراحل
@@ -395,7 +273,6 @@ function totalStars() {
 var levels = {
 
     1: {
-
         name:
             "البداية",
 
@@ -403,69 +280,69 @@ var levels = {
             "مرحلة سهلة للتعرّف على اللعبة",
 
         keys: 3,
-
         coins: 12,
-
         chests: 1,
-
         monsters: 1,
 
-        monsterSpeed: 0.58,
+        monsterSpeed:
+            0.68,
 
-        detection: 0.27,
+        detection:
+            0.27,
 
-        lightRadius: 0.37,
+        lightRadius:
+            0.37,
 
         walls: 4,
-
         hideSpots: 0,
 
-        threeStarTime: 60,
+        threeStarTime:
+            60,
 
-        twoStarTime: 95,
+        twoStarTime:
+            95,
 
-        mode: "keys"
-
+        mode:
+            "keys"
     },
 
 
     2: {
-
         name:
             "الممرات",
 
         description:
-            "ابحث عن المفاتيح وتجنب الوقوع بين الجدران",
+            "ابحث عن المفاتيح وتجنب الجدران",
 
         keys: 4,
-
         coins: 16,
-
         chests: 2,
-
         monsters: 1,
 
-        monsterSpeed: 0.70,
+        monsterSpeed:
+            0.76,
 
-        detection: 0.30,
+        detection:
+            0.30,
 
-        lightRadius: 0.34,
+        lightRadius:
+            0.34,
 
         walls: 6,
-
         hideSpots: 1,
 
-        threeStarTime: 80,
+        threeStarTime:
+            80,
 
-        twoStarTime: 125,
+        twoStarTime:
+            125,
 
-        mode: "keys"
-
+        mode:
+            "keys"
     },
 
 
     3: {
-
         name:
             "المطاردة",
 
@@ -473,34 +350,34 @@ var levels = {
             "هناك وحشان يطاردانك في هذه المرحلة",
 
         keys: 4,
-
         coins: 20,
-
         chests: 2,
-
         monsters: 2,
 
-        monsterSpeed: 0.78,
+        monsterSpeed:
+            0.82,
 
-        detection: 0.33,
+        detection:
+            0.33,
 
-        lightRadius: 0.32,
+        lightRadius:
+            0.32,
 
         walls: 8,
-
         hideSpots: 1,
 
-        threeStarTime: 95,
+        threeStarTime:
+            95,
 
-        twoStarTime: 150,
+        twoStarTime:
+            150,
 
-        mode: "keys"
-
+        mode:
+            "keys"
     },
 
 
     4: {
-
         name:
             "انطفأ النور",
 
@@ -508,36 +385,37 @@ var levels = {
             "إضاءة أضعف ووحش أكثر خطورة",
 
         keys: 5,
-
         coins: 23,
-
         chests: 3,
-
         monsters: 1,
 
-        monsterSpeed: 0.84,
+        monsterSpeed:
+            0.88,
 
-        detection: 0.36,
+        detection:
+            0.36,
 
-        lightRadius: 0.26,
+        lightRadius:
+            0.26,
 
         walls: 8,
-
         hideSpots: 2,
 
-        flicker: true,
+        flicker:
+            true,
 
-        threeStarTime: 110,
+        threeStarTime:
+            110,
 
-        twoStarTime: 170,
+        twoStarTime:
+            170,
 
-        mode: "keys"
-
+        mode:
+            "keys"
     },
 
 
     5: {
-
         name:
             "لا تتوقف",
 
@@ -545,34 +423,34 @@ var levels = {
             "وحشان مع أماكن اختباء محدودة",
 
         keys: 5,
-
         coins: 27,
-
         chests: 3,
-
         monsters: 2,
 
-        monsterSpeed: 0.90,
+        monsterSpeed:
+            0.94,
 
-        detection: 0.38,
+        detection:
+            0.38,
 
-        lightRadius: 0.29,
+        lightRadius:
+            0.29,
 
         walls: 10,
-
         hideSpots: 3,
 
-        threeStarTime: 120,
+        threeStarTime:
+            120,
 
-        twoStarTime: 190,
+        twoStarTime:
+            190,
 
-        mode: "keys"
-
+        mode:
+            "keys"
     },
 
 
     6: {
-
         name:
             "الزعيم",
 
@@ -580,99 +458,146 @@ var levels = {
             "اجمع البلورات واهرب من الزعيم",
 
         keys: 3,
-
         coins: 32,
-
         chests: 3,
-
         monsters: 1,
 
-        monsterSpeed: 0.78,
+        monsterSpeed:
+            0.86,
 
-        detection: 0.60,
+        detection:
+            0.60,
 
-        lightRadius: 0.31,
+        lightRadius:
+            0.31,
 
         walls: 8,
-
         hideSpots: 2,
 
-        threeStarTime: 145,
+        threeStarTime:
+            145,
 
-        twoStarTime: 220,
+        twoStarTime:
+            220,
 
-        mode: "boss"
-
+        mode:
+            "boss"
     }
 
 };
 
 
-var TOTAL_LEVELS = 6;
+var TOTAL_LEVELS =
+    6;
 
 
 // =====================================================
 // حالة اللعبة
 // =====================================================
 
-var currentLevel = 1;
+var currentLevel =
+    1;
 
-var gameRunning = false;
+var gameRunning =
+    false;
 
-var gamePaused = false;
+var gamePaused =
+    false;
 
-var gameEnded = false;
-
-
-var player = null;
-
-var monsters = [];
-
-var collectibles = [];
-
-var gameCoins = [];
-
-var chests = [];
-
-var walls = [];
-
-var hideSpots = [];
-
-var exitDoor = null;
+var gameEnded =
+    false;
 
 
-var collectedCount = 0;
+var player =
+    null;
 
-var coinsCollected = 0;
+var monsters =
+    [];
+
+var collectibles =
+    [];
+
+var gameCoins =
+    [];
+
+var chests =
+    [];
+
+var walls =
+    [];
+
+var hideSpots =
+    [];
+
+var exitDoor =
+    null;
 
 
-var levelStartTime = 0;
+var collectedCount =
+    0;
 
-var pausedAt = 0;
-
-var pausedDuration = 0;
-
-
-var screenShake = 0;
-
-var frozenTimer = 0;
-
-var speedBoostTimer = 0;
+var coinsCollected =
+    0;
 
 
-var toastTimer = null;
+var levelStartTime =
+    0;
 
-var objectiveTimer = null;
+var pausedAt =
+    0;
+
+var pausedDuration =
+    0;
 
 
-var levelRewarded = false;
+var screenShake =
+    0;
+
+var frozenTimer =
+    0;
+
+var speedBoostTimer =
+    0;
+
+var toastTimer =
+    null;
+
+var objectiveTimer =
+    null;
+
+var levelRewarded =
+    false;
+
+
+// V1.1
+var frameScale =
+    1;
+
+var lastFrameTime =
+    0;
+
+var chaseWasActive =
+    false;
+
+var chaseIntensity =
+    0;
+
+var heartbeatTimer =
+    0;
+
+var rageActive =
+    false;
+
+var rageAnnounced =
+    false;
 
 
 // =====================================================
 // الصوت
 // =====================================================
 
-var audioContext = null;
+var audioContext =
+    null;
 
 
 function enableAudio() {
@@ -690,10 +615,8 @@ function enableAudio() {
 
 
         if (AudioCtx) {
-
             audioContext =
                 new AudioCtx();
-
         }
 
     }
@@ -702,11 +625,9 @@ function enableAudio() {
     if (
         audioContext &&
         audioContext.state ===
-            "suspended"
+        "suspended"
     ) {
-
         audioContext.resume();
-
     }
 
 }
@@ -725,9 +646,7 @@ function tone(
 
 
     if (!audioContext) {
-
         enableAudio();
-
     }
 
 
@@ -737,11 +656,13 @@ function tone(
 
 
     var oscillator =
-        audioContext.createOscillator();
+        audioContext
+            .createOscillator();
 
 
     var gain =
-        audioContext.createGain();
+        audioContext
+            .createGain();
 
 
     oscillator.type =
@@ -765,7 +686,10 @@ function tone(
     );
 
 
-    oscillator.connect(gain);
+    oscillator.connect(
+        gain
+    );
+
 
     gain.connect(
         audioContext.destination
@@ -1039,26 +963,35 @@ function hideAllScreens() {
 
 function resetInputs() {
 
-    keyboard.up = false;
+    keyboard.up =
+        false;
 
-    keyboard.down = false;
+    keyboard.down =
+        false;
 
-    keyboard.left = false;
+    keyboard.left =
+        false;
 
-    keyboard.right = false;
+    keyboard.right =
+        false;
 
-    keyboard.sprint = false;
-
-
-    movement.x = 0;
-
-    movement.y = 0;
-
-
-    sprintHeld = false;
+    keyboard.sprint =
+        false;
 
 
-    joystickPointer = null;
+    movement.x =
+        0;
+
+    movement.y =
+        0;
+
+
+    sprintHeld =
+        false;
+
+
+    joystickPointer =
+        null;
 
 
     joystickKnob.style.transform =
@@ -1068,16 +1001,19 @@ function resetInputs() {
 
 
 // =====================================================
-// القائمة الرئيسية
+// القوائم
 // =====================================================
 
 function showMainMenu() {
 
-    gameRunning = false;
+    gameRunning =
+        false;
 
-    gamePaused = false;
+    gamePaused =
+        false;
 
-    gameEnded = false;
+    gameEnded =
+        false;
 
 
     hideAllScreens();
@@ -1178,10 +1114,6 @@ function updateMenus() {
 
 }
 
-
-// =====================================================
-// قائمة المراحل
-// =====================================================
 
 function renderLevels() {
 
@@ -1316,53 +1248,31 @@ function createLevelCard(level) {
 var upgradeData = {
 
     speed: {
-
         cost: 120,
-
         max: 5
-
     },
-
 
     light: {
-
         cost: 150,
-
         max: 5
-
     },
-
 
     health: {
-
         cost: 240,
-
         max: 2
-
     },
-
 
     stamina: {
-
         cost: 130,
-
         max: 5
-
     },
 
-
     shield: {
-
         cost: 200,
-
         max: 3
-
     }
 
-};
-
-
-function updateStoreButtons() {
+};function updateStoreButtons() {
 
     var buttons =
         document.querySelectorAll(
@@ -1651,7 +1561,7 @@ soundBtn.addEventListener(
 
 
 // =====================================================
-// تشغيل المرحلة
+// بناء المرحلة
 // =====================================================
 
 function startLevel(
@@ -1713,6 +1623,7 @@ function startLevel(
                 38
             ),
 
+
         height:
             clamp(
                 minSize *
@@ -1770,7 +1681,8 @@ function startLevel(
             18,
 
 
-        invincible: 0,
+        invincible:
+            0,
 
 
         shield:
@@ -1783,18 +1695,28 @@ function startLevel(
             0.11,
 
 
-        hidden: false,
-
-        hideTime: 0,
-
-        hideCooldown: 0,
+        hidden:
+            false,
 
 
-        facingX: 1,
+        hideTime:
+            0,
 
-        facingY: 0,
 
-        walkCycle: 0
+        hideCooldown:
+            0,
+
+
+        facingX:
+            1,
+
+
+        facingY:
+            0,
+
+
+        walkCycle:
+            0
 
     };
 
@@ -1842,6 +1764,7 @@ function startLevel(
             canvas.width *
             0.91,
 
+
         y:
             canvas.height *
             0.75,
@@ -1871,34 +1794,72 @@ function startLevel(
     };
 
 
-    collectedCount = 0;
-
-    coinsCollected = 0;
-
-
-    frozenTimer = 0;
-
-    speedBoostTimer = 0;
-
-    screenShake = 0;
-
-    levelRewarded = false;
+    collectedCount =
+        0;
 
 
-    gameRunning = true;
+    coinsCollected =
+        0;
 
-    gamePaused = false;
 
-    gameEnded = false;
+    frozenTimer =
+        0;
+
+
+    speedBoostTimer =
+        0;
+
+
+    screenShake =
+        0;
+
+
+    levelRewarded =
+        false;
+
+
+    chaseWasActive =
+        false;
+
+
+    chaseIntensity =
+        0;
+
+
+    heartbeatTimer =
+        0;
+
+
+    rageActive =
+        false;
+
+
+    rageAnnounced =
+        false;
+
+
+    gameRunning =
+        true;
+
+
+    gamePaused =
+        false;
+
+
+    gameEnded =
+        false;
 
 
     levelStartTime =
         Date.now();
 
 
-    pausedDuration = 0;
+    pausedDuration =
+        0;
 
-    pausedAt = 0;
+
+    pausedAt =
+        0;
 
 
     resetInputs();
@@ -1909,7 +1870,8 @@ function startLevel(
 
 
     if (
-        currentLevel === 6
+        currentLevel ===
+        6
     ) {
 
         showObjective(
@@ -1917,7 +1879,8 @@ function startLevel(
         );
 
     } else if (
-        config.hideSpots > 0
+        config.hideSpots >
+        0
     ) {
 
         showObjective(
@@ -1936,7 +1899,7 @@ function startLevel(
 
 
 // =====================================================
-// الجدران
+// الجدران والأماكن
 // =====================================================
 
 function createWalls(count) {
@@ -2239,9 +2202,11 @@ function getSafePosition(
 
         return {
 
-            x: x,
+            x:
+                x,
 
-            y: y
+            y:
+                y
 
         };
 
@@ -2267,9 +2232,12 @@ function getSafePosition(
 // أماكن الاختباء
 // =====================================================
 
-function createHideSpots(count) {
+function createHideSpots(
+    count
+) {
 
-    var list = [];
+    var list =
+        [];
 
 
     var size =
@@ -2293,18 +2261,22 @@ function createHideSpots(count) {
         var pos =
             getSafePosition(
                 list,
-                size * 0.55,
+                size *
+                0.55,
                 true
             );
 
 
         list.push({
 
-            x: pos.x,
+            x:
+                pos.x,
 
-            y: pos.y,
+            y:
+                pos.y,
 
-            width: size,
+            width:
+                size,
 
             height:
                 size *
@@ -2329,7 +2301,8 @@ function createCollectibles(
     mode
 ) {
 
-    var list = [];
+    var list =
+        [];
 
 
     var i;
@@ -2351,11 +2324,14 @@ function createCollectibles(
 
         list.push({
 
-            x: pos.x,
+            x:
+                pos.x,
 
-            y: pos.y,
+            y:
+                pos.y,
 
-            collected: false,
+            collected:
+                false,
 
             phase:
                 Math.random() *
@@ -2363,8 +2339,11 @@ function createCollectibles(
                 2,
 
             kind:
-                mode === "boss"
+                mode ===
+                "boss"
+
                     ? "crystal"
+
                     : "key"
 
         });
@@ -2381,9 +2360,12 @@ function createCollectibles(
 // العملات
 // =====================================================
 
-function createCoins(count) {
+function createCoins(
+    count
+) {
 
-    var list = [];
+    var list =
+        [];
 
 
     var i;
@@ -2405,11 +2387,14 @@ function createCoins(count) {
 
         list.push({
 
-            x: pos.x,
+            x:
+                pos.x,
 
-            y: pos.y,
+            y:
+                pos.y,
 
-            collected: false,
+            collected:
+                false,
 
             phase:
                 Math.random() *
@@ -2430,9 +2415,12 @@ function createCoins(count) {
 // الصناديق
 // =====================================================
 
-function createChests(count) {
+function createChests(
+    count
+) {
 
-    var list = [];
+    var list =
+        [];
 
 
     var size =
@@ -2463,17 +2451,27 @@ function createChests(count) {
 
         list.push({
 
-            x: pos.x,
+            x:
+                pos.x,
 
-            y: pos.y,
+            y:
+                pos.y,
 
-            width: size,
+            width:
+                size,
 
             height:
                 size *
                 0.72,
 
-            opened: false
+            opened:
+                false,
+
+            opening:
+                0,
+
+            rewardGiven:
+                false
 
         });
 
@@ -2489,9 +2487,12 @@ function createChests(count) {
 // إنشاء الوحوش
 // =====================================================
 
-function createMonsters(config) {
+function createMonsters(
+    config
+) {
 
-    var list = [];
+    var list =
+        [];
 
 
     var size =
@@ -2517,6 +2518,77 @@ function createMonsters(config) {
             "boss";
 
 
+        var speedTrait =
+            1;
+
+
+        var detectionTrait =
+            1;
+
+
+        // المرحلة 3:
+        // واحد أسرع والآخر يشوف من مسافة أبعد
+        if (
+            currentLevel ===
+            3
+        ) {
+
+            if (
+                i === 0
+            ) {
+
+                speedTrait =
+                    1.10;
+
+
+                detectionTrait =
+                    0.92;
+
+            } else {
+
+                speedTrait =
+                    0.92;
+
+
+                detectionTrait =
+                    1.18;
+
+            }
+
+        }
+
+
+        // المرحلة 5
+        if (
+            currentLevel ===
+            5
+        ) {
+
+            if (
+                i === 0
+            ) {
+
+                speedTrait =
+                    1.06;
+
+
+                detectionTrait =
+                    1.00;
+
+            } else {
+
+                speedTrait =
+                    0.96;
+
+
+                detectionTrait =
+                    1.12;
+
+            }
+
+        }
+
+
         list.push({
 
             x:
@@ -2526,6 +2598,7 @@ function createMonsters(config) {
                     i *
                     0.18
                 ),
+
 
             y:
                 canvas.height *
@@ -2538,13 +2611,15 @@ function createMonsters(config) {
 
             width:
                 isBoss
-                    ? size * 1.65
+                    ? size *
+                      1.65
                     : size,
 
 
             height:
                 isBoss
-                    ? size * 1.65
+                    ? size *
+                      1.65
                     : size,
 
 
@@ -2552,23 +2627,43 @@ function createMonsters(config) {
 
                 clamp(
                     screenMin() *
-                    0.0021,
-                    1.1,
-                    2.45
+                    0.0035,
+                    1.85,
+                    3.45
                 ) *
 
-                config.monsterSpeed,
+                config.monsterSpeed *
+
+                speedTrait,
 
 
             detection:
 
                 screenMin() *
 
-                config.detection,
+                config.detection *
+
+                detectionTrait,
 
 
             active:
                 false,
+
+
+            searching:
+                false,
+
+
+            searchTimer:
+                0,
+
+
+            lastKnownX:
+                0,
+
+
+            lastKnownY:
+                0,
 
 
             wanderAngle:
@@ -2587,11 +2682,20 @@ function createMonsters(config) {
                     : 0,
 
 
-            dashTimer: 0,
+            dashWarning:
+                0,
 
-            dashX: 0,
 
-            dashY: 0
+            dashTimer:
+                0,
+
+
+            dashX:
+                0,
+
+
+            dashY:
+                0
 
         });
 
@@ -2609,15 +2713,20 @@ function createMonsters(config) {
 
 var keyboard = {
 
-    up: false,
+    up:
+        false,
 
-    down: false,
+    down:
+        false,
 
-    left: false,
+    left:
+        false,
 
-    right: false,
+    right:
+        false,
 
-    sprint: false
+    sprint:
+        false
 
 };
 
@@ -2683,9 +2792,12 @@ document.addEventListener(
             );
 
 
-        if (direction) {
+        if (
+            direction
+        ) {
 
             event.preventDefault();
+
 
             keyboard[direction] =
                 true;
@@ -2717,9 +2829,12 @@ document.addEventListener(
             );
 
 
-        if (direction) {
+        if (
+            direction
+        ) {
 
             event.preventDefault();
+
 
             keyboard[direction] =
                 false;
@@ -2747,9 +2862,11 @@ document.addEventListener(
 
 var movement = {
 
-    x: 0,
+    x:
+        0,
 
-    y: 0
+    y:
+        0
 
 };
 
@@ -2820,10 +2937,13 @@ joystick.addEventListener(
 );
 
 
-function updateJoystick(event) {
+function updateJoystick(
+    event
+) {
 
     var rect =
-        joystick.getBoundingClientRect();
+        joystick
+            .getBoundingClientRect();
 
 
     var centerX =
@@ -2977,7 +3097,9 @@ sprintBtn.addEventListener(
 // التصادم
 // =====================================================
 
-function hitsWall(object) {
+function hitsWall(
+    object
+) {
 
     var i;
 
@@ -3014,6 +3136,10 @@ function moveWithWalls(
     speed
 ) {
 
+    speed *=
+        frameScale;
+
+
     var nextX = {
 
         x:
@@ -3035,7 +3161,8 @@ function moveWithWalls(
 
     if (
 
-        nextX.x >= 0 &&
+        nextX.x >=
+        0 &&
 
         nextX.x +
         nextX.width <=
@@ -3074,7 +3201,8 @@ function moveWithWalls(
 
     if (
 
-        nextY.y >= 0 &&
+        nextY.y >=
+        0 &&
 
         nextY.y +
         nextY.height <=
@@ -3091,10 +3219,7 @@ function moveWithWalls(
 
     }
 
-}
-
-
-// =====================================================
+}// =====================================================
 // الاختباء
 // =====================================================
 
@@ -3136,10 +3261,12 @@ function updateHiding() {
 
 
     if (
-        player.hideCooldown > 0
+        player.hideCooldown >
+        0
     ) {
 
-        player.hideCooldown--;
+        player.hideCooldown -=
+            frameScale;
 
     }
 
@@ -3148,9 +3275,11 @@ function updateHiding() {
 
         inside &&
 
-        player.hideCooldown <= 0 &&
+        player.hideCooldown <=
+        0 &&
 
-        player.hideTime < 180
+        player.hideTime <
+        180
 
     ) {
 
@@ -3158,11 +3287,14 @@ function updateHiding() {
             true;
 
 
-        player.hideTime++;
+        player.hideTime +=
+            frameScale;
 
 
         if (
-            player.hideTime === 1
+            player.hideTime <=
+            frameScale +
+            0.1
         ) {
 
             showToast(
@@ -3177,7 +3309,8 @@ function updateHiding() {
 
             player.hidden &&
 
-            player.hideTime >= 180
+            player.hideTime >=
+            180
 
         ) {
 
@@ -3196,7 +3329,9 @@ function updateHiding() {
             false;
 
 
-        if (!inside) {
+        if (
+            !inside
+        ) {
 
             player.hideTime =
                 0;
@@ -3209,7 +3344,7 @@ function updateHiding() {
 
 
 // =====================================================
-// حركة اللاعب والركض
+// اللاعب والركض
 // =====================================================
 
 function updatePlayer() {
@@ -3269,18 +3404,23 @@ function updatePlayer() {
         len > 1
     ) {
 
-        dx /= len;
+        dx /=
+            len;
 
-        dy /= len;
+
+        dy /=
+            len;
 
     }
 
 
     if (
 
-        Math.abs(dx) > 0.02 ||
+        Math.abs(dx) >
+        0.02 ||
 
-        Math.abs(dy) > 0.02
+        Math.abs(dy) >
+        0.02
 
     ) {
 
@@ -3293,13 +3433,16 @@ function updatePlayer() {
 
 
         player.walkCycle +=
-            0.16;
+            0.16 *
+            frameScale;
 
     }
 
 
     var wantsSprint =
+
         keyboard.sprint ||
+
         sprintHeld;
 
 
@@ -3307,9 +3450,11 @@ function updatePlayer() {
 
         wantsSprint &&
 
-        player.stamina > 0 &&
+        player.stamina >
+        0 &&
 
-        len > 0.05;
+        len >
+        0.05;
 
 
     var speed =
@@ -3325,12 +3470,14 @@ function updatePlayer() {
 
 
         player.stamina -=
-            0.62;
+            0.62 *
+            frameScale;
 
     } else {
 
         player.stamina +=
-            0.32;
+            0.32 *
+            frameScale;
 
     }
 
@@ -3344,14 +3491,16 @@ function updatePlayer() {
 
 
     if (
-        speedBoostTimer > 0
+        speedBoostTimer >
+        0
     ) {
 
         speed *=
             1.35;
 
 
-        speedBoostTimer--;
+        speedBoostTimer -=
+            frameScale;
 
     }
 
@@ -3365,10 +3514,12 @@ function updatePlayer() {
 
 
     if (
-        player.invincible > 0
+        player.invincible >
+        0
     ) {
 
-        player.invincible--;
+        player.invincible -=
+            frameScale;
 
     }
 
@@ -3385,10 +3536,12 @@ function updatePlayer() {
 function updateMonsters() {
 
     if (
-        frozenTimer > 0
+        frozenTimer >
+        0
     ) {
 
-        frozenTimer--;
+        frozenTimer -=
+            frameScale;
 
         return;
 
@@ -3413,7 +3566,9 @@ function updateMonsters() {
 }
 
 
-function updateMonster(monster) {
+function updateMonster(
+    monster
+) {
 
     var px =
         player.x +
@@ -3448,12 +3603,55 @@ function updateMonster(monster) {
         );
 
 
-    monster.active =
+    var seesPlayer =
 
         !player.hidden &&
 
         dist <
         monster.detection;
+
+
+    monster.active =
+        seesPlayer;
+
+
+    if (
+        seesPlayer
+    ) {
+
+        monster.lastKnownX =
+            px;
+
+
+        monster.lastKnownY =
+            py;
+
+
+        monster.searchTimer =
+            95;
+
+
+        monster.searching =
+            false;
+
+    } else if (
+        monster.searchTimer >
+        0
+    ) {
+
+        monster.searchTimer -=
+            frameScale;
+
+
+        monster.searching =
+            true;
+
+    } else {
+
+        monster.searching =
+            false;
+
+    }
 
 
     if (
@@ -3473,9 +3671,12 @@ function updateMonster(monster) {
     }
 
 
-    var dx = 0;
+    var dx =
+        0;
 
-    var dy = 0;
+
+    var dy =
+        0;
 
 
     if (
@@ -3483,16 +3684,59 @@ function updateMonster(monster) {
     ) {
 
         dx =
-            px - mx;
+            px -
+            mx;
 
 
         dy =
-            py - my;
+            py -
+            my;
+
+    } else if (
+        monster.searching
+    ) {
+
+        dx =
+            monster.lastKnownX -
+            mx;
+
+
+        dy =
+            monster.lastKnownY -
+            my;
+
+
+        if (
+            Math.hypot(
+                dx,
+                dy
+            ) <
+            25
+        ) {
+
+            monster.wanderAngle +=
+                0.045 *
+                frameScale;
+
+
+            dx =
+                Math.cos(
+                    monster.wanderAngle
+                );
+
+
+            dy =
+                Math.sin(
+                    monster.wanderAngle
+                );
+
+        }
 
     } else {
 
         monster.wanderAngle +=
-            0.013;
+            0.013 *
+            frameScale;
 
 
         dx =
@@ -3517,9 +3761,12 @@ function updateMonster(monster) {
         ) || 1;
 
 
-    dx /= len;
+    dx /=
+        len;
 
-    dy /= len;
+
+    dy /=
+        len;
 
 
     var speed =
@@ -3529,8 +3776,38 @@ function updateMonster(monster) {
         (
             1 +
             collectedCount *
-            0.025
+            0.018
         );
+
+
+    if (
+        monster.active
+    ) {
+
+        speed *=
+            1.08;
+
+    }
+
+
+    if (
+        monster.searching
+    ) {
+
+        speed *=
+            0.82;
+
+    }
+
+
+    if (
+        rageActive
+    ) {
+
+        speed *=
+            1.12;
+
+    }
 
 
     moveWithWalls(
@@ -3556,32 +3833,31 @@ function updateBoss(
 ) {
 
     if (
-        monster.dashCooldown > 0
+        monster.dashCooldown >
+        0
     ) {
 
-        monster.dashCooldown--;
+        monster.dashCooldown -=
+            frameScale;
 
     }
 
 
     if (
-        monster.dashTimer > 0
+        monster.dashTimer >
+        0
     ) {
 
-        monster.dashTimer--;
+        monster.dashTimer -=
+            frameScale;
 
 
         moveWithWalls(
-
             monster,
-
             monster.dashX,
-
             monster.dashY,
-
             monster.baseSpeed *
-            3.4
-
+            3.35
         );
 
 
@@ -3591,11 +3867,13 @@ function updateBoss(
 
 
     var dx =
-        px - mx;
+        px -
+        mx;
 
 
     var dy =
-        py - my;
+        py -
+        my;
 
 
     var len =
@@ -3605,16 +3883,112 @@ function updateBoss(
         ) || 1;
 
 
-    dx /= len;
+    dx /=
+        len;
 
-    dy /= len;
+
+    dy /=
+        len;
+
+
+    if (
+        monster.dashWarning >
+        0
+    ) {
+
+        monster.dashWarning -=
+            frameScale;
+
+
+        screenShake =
+            Math.max(
+                screenShake,
+                1.8
+            );
+
+
+        moveWithWalls(
+            monster,
+            dx,
+            dy,
+            monster.baseSpeed *
+            0.40
+        );
+
+
+        if (
+            monster.dashWarning <=
+            0
+        ) {
+
+            var newMx =
+                monster.x +
+                monster.width /
+                2;
+
+
+            var newMy =
+                monster.y +
+                monster.height /
+                2;
+
+
+            var dashDx =
+                px -
+                newMx;
+
+
+            var dashDy =
+                py -
+                newMy;
+
+
+            var dashLen =
+                Math.hypot(
+                    dashDx,
+                    dashDy
+                ) || 1;
+
+
+            monster.dashX =
+                dashDx /
+                dashLen;
+
+
+            monster.dashY =
+                dashDy /
+                dashLen;
+
+
+            monster.dashTimer =
+                23;
+
+
+            monster.dashCooldown =
+                210;
+
+
+            tone(
+                70,
+                0.24,
+                0.07,
+                "sawtooth"
+            );
+
+        }
+
+
+        return;
+
+    }
 
 
     if (
 
         monster.active &&
 
-        monster.dashCooldown <= 0 &&
+        monster.dashCooldown <=
+        0 &&
 
         distance(
             px,
@@ -3622,41 +3996,28 @@ function updateBoss(
             mx,
             my
         ) >
-        110
+        120
 
     ) {
 
-        monster.dashX =
-            dx;
-
-
-        monster.dashY =
-            dy;
-
-
-        monster.dashTimer =
-            24;
-
-
-        monster.dashCooldown =
-            210;
+        monster.dashWarning =
+            56;
 
 
         showToast(
-            "الزعيم يندفع نحوك، اركض!"
+            "انتبه! الزعيم يستعد للاندفاع"
         );
-
-
-        screenShake =
-            8;
 
 
         tone(
-            70,
-            0.24,
-            0.07,
-            "sawtooth"
+            125,
+            0.18,
+            0.055,
+            "square"
         );
+
+
+        return;
 
     }
 
@@ -3668,8 +4029,28 @@ function updateBoss(
         (
             1 +
             collectedCount *
-            0.05
+            0.035
         );
+
+
+    if (
+        monster.active
+    ) {
+
+        speed *=
+            1.05;
+
+    }
+
+
+    if (
+        rageActive
+    ) {
+
+        speed *=
+            1.18;
+
+    }
 
 
     moveWithWalls(
@@ -3683,7 +4064,7 @@ function updateBoss(
 
 
 // =====================================================
-// ضربات الوحش
+// ضربة الوحش
 // =====================================================
 
 function checkMonsterAttack(
@@ -3694,7 +4075,8 @@ function checkMonsterAttack(
 
         player.hidden ||
 
-        player.invincible > 0
+        player.invincible >
+        0
 
     ) {
 
@@ -3703,11 +4085,64 @@ function checkMonsterAttack(
     }
 
 
+    var playerCenterX =
+
+        player.x +
+
+        player.width /
+        2;
+
+
+    var playerCenterY =
+
+        player.y +
+
+        player.height /
+        2;
+
+
+    var monsterCenterX =
+
+        monster.x +
+
+        monster.width /
+        2;
+
+
+    var monsterCenterY =
+
+        monster.y +
+
+        monster.height /
+        2;
+
+
+    var hitDistance =
+
+        player.width *
+        0.34 +
+
+        monster.width *
+
+        (
+            monster.isBoss
+                ? 0.31
+                : 0.34
+        );
+
+
+    var currentDistance =
+        distance(
+            playerCenterX,
+            playerCenterY,
+            monsterCenterX,
+            monsterCenterY
+        );
+
+
     if (
-        !collide(
-            player,
-            monster
-        )
+        currentDistance >
+        hitDistance
     ) {
 
         return;
@@ -3753,6 +4188,7 @@ function checkMonsterAttack(
 
 
     screenShake =
+
         monster.isBoss
             ? 24
             : 17;
@@ -3762,13 +4198,17 @@ function checkMonsterAttack(
 
 
     var dx =
-        player.x -
-        monster.x;
+
+        playerCenterX -
+
+        monsterCenterX;
 
 
     var dy =
-        player.y -
-        monster.y;
+
+        playerCenterY -
+
+        monsterCenterY;
 
 
     var len =
@@ -3778,40 +4218,37 @@ function checkMonsterAttack(
         ) || 1;
 
 
-    player.x =
-        clamp(
+    dx /=
+        len;
 
-            player.x +
-            dx /
-            len *
-            65,
 
-            0,
+    dy /=
+        len;
 
-            canvas.width -
-            player.width
 
+    // يدفع اللاعب بدون ما يدخله داخل الجدار
+    var step;
+
+
+    for (
+        step = 0;
+        step < 12;
+        step++
+    ) {
+
+        moveWithWalls(
+            player,
+            dx,
+            dy,
+            5
         );
 
-
-    player.y =
-        clamp(
-
-            player.y +
-            dy /
-            len *
-            65,
-
-            0,
-
-            canvas.height -
-            player.height
-
-        );
+    }
 
 
     if (
-        player.health <= 0
+        player.health <=
+        0
     ) {
 
         loseLevel();
@@ -3921,9 +4358,30 @@ function checkCollectibles() {
                         true;
 
 
-                    showToast(
-                        "انفتح باب الهروب، اهرب!"
-                    );
+                    rageActive =
+                        true;
+
+
+                    if (
+                        !rageAnnounced
+                    ) {
+
+                        rageAnnounced =
+                            true;
+
+
+                        showToast(
+                            "انفتح باب الهروب! الوحوش أصبحت أسرع"
+                        );
+
+
+                        screenShake =
+                            Math.max(
+                                screenShake,
+                                5
+                            );
+
+                    }
 
 
                     tone(
@@ -3959,7 +4417,7 @@ function checkCollectibles() {
 
 
 // =====================================================
-// جمع العملات
+// العملات
 // =====================================================
 
 function checkCoins() {
@@ -4004,10 +4462,69 @@ function checkCoins() {
                     true;
 
 
-                coinsCollected++;
+                var risk =
+                    false;
+
+
+                monsters.forEach(
+                    function (monster) {
+
+                        var mx =
+                            monster.x +
+                            monster.width /
+                            2;
+
+
+                        var my =
+                            monster.y +
+                            monster.height /
+                            2;
+
+
+                        if (
+
+                            !player.hidden &&
+
+                            distance(
+                                px,
+                                py,
+                                mx,
+                                my
+                            ) <
+
+                            screenMin() *
+                            0.22
+
+                        ) {
+
+                            risk =
+                                true;
+
+                        }
+
+                    }
+                );
+
+
+                coinsCollected +=
+
+                    risk
+                        ? 2
+                        : 1;
 
 
                 soundCollect();
+
+
+                if (
+                    risk
+                ) {
+
+                    showToast(
+                        "مكافأة مخاطرة: +2 عملة"
+                    );
+
+                }
 
             }
 
@@ -4027,7 +4544,12 @@ function checkChests() {
         function (chest) {
 
             if (
-                chest.opened
+
+                chest.opened ||
+
+                chest.opening >
+                0
+
             ) {
 
                 return;
@@ -4042,11 +4564,74 @@ function checkChests() {
                 )
             ) {
 
+                chest.opening =
+                    0.01;
+
+
+                tone(
+                    220,
+                    0.12,
+                    0.04,
+                    "square"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+function updateChests() {
+
+    chests.forEach(
+        function (chest) {
+
+            if (
+
+                chest.opened ||
+
+                chest.opening <=
+                0
+
+            ) {
+
+                return;
+
+            }
+
+
+            chest.opening +=
+
+                frameScale /
+                18;
+
+
+            if (
+                chest.opening >=
+                1
+            ) {
+
+                chest.opening =
+                    1;
+
+
                 chest.opened =
                     true;
 
 
-                giveRandomReward();
+                if (
+                    !chest.rewardGiven
+                ) {
+
+                    chest.rewardGiven =
+                        true;
+
+
+                    giveRandomReward();
+
+                }
 
             }
 
@@ -4207,7 +4792,7 @@ function giveRandomReward() {
 
 
 // =====================================================
-// باب الخروج
+// الباب
 // =====================================================
 
 function checkDoor() {
@@ -4237,7 +4822,7 @@ function checkDoor() {
 
 
 // =====================================================
-// حساب النجوم
+// النجوم
 // =====================================================
 
 function calculateStars(
@@ -4581,42 +5166,19 @@ function loseLevel() {
         "sawtooth"
     );
 
-}
-
-
-// =====================================================
-// نهاية اللعبة
-// =====================================================
-
-function showFinishScreen(
-    seconds,
-    reward
-) {
-
+}function showFinishScreen(seconds, reward) {
     hideAllScreens();
 
-
     finishStats.textContent =
-
         "أنهيت المرحلة الأخيرة خلال " +
-
         seconds +
-
         " ثانية، وحصلت على " +
-
         reward +
-
         " عملة. مجموع النجوم: " +
-
         totalStars() +
-
         " / 18";
 
-
-    finishScreen.classList.remove(
-        "hidden"
-    );
-
+    finishScreen.classList.remove("hidden");
 }
 
 
@@ -4624,41 +5186,20 @@ function showFinishScreen(
 // أزرار الفوز والخسارة
 // =====================================================
 
-nextLevelBtn.addEventListener(
-    "click",
-    function () {
+nextLevelBtn.addEventListener("click", function () {
+    enableAudio();
 
-        enableAudio();
-
-
-        if (
-            currentLevel <
-            TOTAL_LEVELS
-        ) {
-
-            startLevel(
-                currentLevel +
-                1
-            );
-
-        }
-
+    if (currentLevel < TOTAL_LEVELS) {
+        startLevel(currentLevel + 1);
     }
-);
+});
 
 
-retryBtn.addEventListener(
-    "click",
-    function () {
+retryBtn.addEventListener("click", function () {
+    enableAudio();
 
-        enableAudio();
-
-        startLevel(
-            currentLevel
-        );
-
-    }
-);
+    startLevel(currentLevel);
+});
 
 
 homeBtn.addEventListener(
@@ -4677,100 +5218,268 @@ finishHomeBtn.addEventListener(
 // الإيقاف
 // =====================================================
 
-pauseBtn.addEventListener(
-    "click",
-    function () {
+pauseBtn.addEventListener("click", function () {
 
-        if (
-
-            !gameRunning ||
-
-            gamePaused
-
-        ) {
-
-            return;
-
-        }
-
-
-        gamePaused =
-            true;
-
-
-        pausedAt =
-            Date.now();
-
-
-        pauseScreen.classList.remove(
-            "hidden"
-        );
-
-
-        joystick.classList.add(
-            "hidden"
-        );
-
-
-        sprintBtn.classList.add(
-            "hidden"
-        );
-
-
-        resetInputs();
-
+    if (
+        !gameRunning ||
+        gamePaused
+    ) {
+        return;
     }
-);
 
 
-resumeBtn.addEventListener(
-    "click",
-    function () {
+    gamePaused = true;
 
-        if (
-            !gamePaused
-        ) {
-
-            return;
-
-        }
+    pausedAt =
+        Date.now();
 
 
-        pausedDuration +=
-
-            Date.now() -
-            pausedAt;
-
-
-        gamePaused =
-            false;
+    pauseScreen.classList.remove(
+        "hidden"
+    );
 
 
-        pauseScreen.classList.add(
-            "hidden"
-        );
+    joystick.classList.add(
+        "hidden"
+    );
 
 
-        joystick.classList.remove(
-            "hidden"
-        );
+    sprintBtn.classList.add(
+        "hidden"
+    );
 
 
-        sprintBtn.classList.remove(
-            "hidden"
-        );
+    resetInputs();
+
+});
 
 
-        updateOrientationHint();
+resumeBtn.addEventListener("click", function () {
 
+    if (!gamePaused) {
+        return;
     }
-);
+
+
+    pausedDuration +=
+        Date.now() -
+        pausedAt;
+
+
+    gamePaused =
+        false;
+
+
+    pauseScreen.classList.add(
+        "hidden"
+    );
+
+
+    joystick.classList.remove(
+        "hidden"
+    );
+
+
+    sprintBtn.classList.remove(
+        "hidden"
+    );
+
+
+    updateOrientationHint();
+
+});
 
 
 pauseHomeBtn.addEventListener(
     "click",
     showMainMenu
 );
+
+
+// =====================================================
+// تأثيرات المطاردة
+// =====================================================
+
+function updateChaseEffects() {
+
+    if (!player) {
+        return;
+    }
+
+
+    var isChasing =
+        false;
+
+
+    var closest =
+        Infinity;
+
+
+    var px =
+        player.x +
+        player.width / 2;
+
+
+    var py =
+        player.y +
+        player.height / 2;
+
+
+    monsters.forEach(function (monster) {
+
+        var mx =
+            monster.x +
+            monster.width / 2;
+
+
+        var my =
+            monster.y +
+            monster.height / 2;
+
+
+        var dist =
+            distance(
+                px,
+                py,
+                mx,
+                my
+            );
+
+
+        if (
+            monster.active &&
+            !player.hidden
+        ) {
+
+            isChasing =
+                true;
+
+
+            closest =
+                Math.min(
+                    closest,
+                    dist
+                );
+
+        }
+
+    });
+
+
+    var target =
+        0;
+
+
+    if (isChasing) {
+
+        target =
+            clamp(
+                1 -
+                closest /
+                (
+                    screenMin() *
+                    0.42
+                ),
+                0.18,
+                1
+            );
+
+    }
+
+
+    chaseIntensity +=
+        (
+            target -
+            chaseIntensity
+        ) *
+        0.10 *
+        frameScale;
+
+
+    chaseIntensity =
+        clamp(
+            chaseIntensity,
+            0,
+            1
+        );
+
+
+    if (
+        isChasing &&
+        !chaseWasActive
+    ) {
+
+        showToast(
+            "الوحش رآك!"
+        );
+
+
+        screenShake =
+            Math.max(
+                screenShake,
+                3.5
+            );
+
+
+        tone(
+            95,
+            0.18,
+            0.055,
+            "sawtooth"
+        );
+
+    }
+
+
+    if (isChasing) {
+
+        heartbeatTimer -=
+            frameScale;
+
+
+        if (
+            heartbeatTimer <=
+            0
+        ) {
+
+            tone(
+                52 +
+                chaseIntensity *
+                12,
+
+                0.08,
+
+                0.026 +
+                chaseIntensity *
+                0.025,
+
+                "sine"
+            );
+
+
+            heartbeatTimer =
+                clamp(
+                    52 -
+                    chaseIntensity *
+                    28,
+                    20,
+                    52
+                );
+
+        }
+
+    } else {
+
+        heartbeatTimer =
+            0;
+
+    }
+
+
+    chaseWasActive =
+        isChasing;
+
+}
 
 
 // =====================================================
@@ -4869,16 +5578,12 @@ function updateHUD() {
 
 
     staminaText.textContent =
-
         staminaPercent +
-
         "%";
 
 
     staminaFill.style.width =
-
         staminaPercent +
-
         "%";
 
 }
@@ -4929,7 +5634,6 @@ function drawMap() {
 
 
     var x;
-
     var y;
 
 
@@ -5001,22 +5705,16 @@ function drawFloorMarks() {
 
         var x =
             (
-                i *
-                173 +
-
-                currentLevel *
-                47
+                i * 173 +
+                currentLevel * 47
             ) %
             canvas.width;
 
 
         var y =
             (
-                i *
-                97 +
-
-                currentLevel *
-                61
+                i * 97 +
+                currentLevel * 61
             ) %
             canvas.height;
 
@@ -5028,14 +5726,9 @@ function drawFloorMarks() {
             x,
             y,
             10 +
-            (
-                i %
-                4
-            ) *
-            6,
+            (i % 4) * 6,
             0,
-            Math.PI *
-            2
+            Math.PI * 2
         );
 
 
@@ -5052,50 +5745,48 @@ function drawFloorMarks() {
 
 function drawWalls() {
 
-    walls.forEach(
-        function (wall) {
+    walls.forEach(function (wall) {
 
-            ctx.fillStyle =
-                "#1a211c";
-
-
-            ctx.fillRect(
-                wall.x,
-                wall.y,
-                wall.width,
-                wall.height
-            );
+        ctx.fillStyle =
+            "#1a211c";
 
 
-            ctx.strokeStyle =
-                "#303932";
+        ctx.fillRect(
+            wall.x,
+            wall.y,
+            wall.width,
+            wall.height
+        );
 
 
-            ctx.lineWidth =
-                1;
+        ctx.strokeStyle =
+            "#303932";
 
 
-            ctx.strokeRect(
-                wall.x,
-                wall.y,
-                wall.width,
-                wall.height
-            );
+        ctx.lineWidth =
+            1;
 
 
-            ctx.fillStyle =
-                "rgba(255,255,255,0.025)";
+        ctx.strokeRect(
+            wall.x,
+            wall.y,
+            wall.width,
+            wall.height
+        );
 
 
-            ctx.fillRect(
-                wall.x + 2,
-                wall.y + 2,
-                wall.width - 4,
-                3
-            );
+        ctx.fillStyle =
+            "rgba(255,255,255,0.025)";
 
-        }
-    );
+
+        ctx.fillRect(
+            wall.x + 2,
+            wall.y + 2,
+            wall.width - 4,
+            3
+        );
+
+    });
 
 }
 
@@ -5106,67 +5797,59 @@ function drawWalls() {
 
 function drawHideSpots() {
 
-    hideSpots.forEach(
-        function (spot) {
+    hideSpots.forEach(function (spot) {
 
-            ctx.save();
-
-
-            ctx.fillStyle =
-                "rgba(19,24,21,0.92)";
+        ctx.save();
 
 
-            ctx.fillRect(
-                spot.x,
-                spot.y,
-                spot.width,
-                spot.height
-            );
+        ctx.fillStyle =
+            "rgba(19,24,21,0.92)";
 
 
-            ctx.strokeStyle =
-                "rgba(118,142,122,0.20)";
+        ctx.fillRect(
+            spot.x,
+            spot.y,
+            spot.width,
+            spot.height
+        );
 
 
-            ctx.lineWidth =
-                2;
+        ctx.strokeStyle =
+            "rgba(118,142,122,0.20)";
 
 
-            ctx.strokeRect(
-                spot.x,
-                spot.y,
-                spot.width,
-                spot.height
-            );
+        ctx.lineWidth =
+            2;
 
 
-            ctx.fillStyle =
-                "rgba(0,0,0,0.30)";
+        ctx.strokeRect(
+            spot.x,
+            spot.y,
+            spot.width,
+            spot.height
+        );
 
 
-            ctx.fillRect(
-
-                spot.x +
-                spot.width *
-                0.18,
-
-                spot.y +
-                spot.height *
-                0.12,
-
-                spot.width *
-                0.64,
-
-                spot.height *
-                0.76
-
-            );
+        ctx.fillStyle =
+            "rgba(0,0,0,0.30)";
 
 
-            ctx.restore();
+        ctx.fillRect(
+            spot.x +
+            spot.width * 0.18,
 
-        }
-    );
+            spot.y +
+            spot.height * 0.12,
+
+            spot.width * 0.64,
+
+            spot.height * 0.76
+        );
+
+
+        ctx.restore();
+
+    });
 
 }
 
@@ -5182,84 +5865,122 @@ function drawCoins() {
         0.005;
 
 
-    gameCoins.forEach(
-        function (coin) {
+    var px =
+        player
 
-            if (
-                coin.collected
-            ) {
+            ? player.x +
+              player.width / 2
 
-                return;
-
-            }
+            : 0;
 
 
-            var pulse =
+    var py =
+        player
 
-                1 +
+            ? player.y +
+              player.height / 2
 
-                Math.sin(
-                    now +
-                    coin.phase
-                ) *
-
-                0.12;
+            : 0;
 
 
-            ctx.save();
+    gameCoins.forEach(function (coin) {
 
-
-            ctx.shadowBlur =
-                11;
-
-
-            ctx.shadowColor =
-                "#dfbc42";
-
-
-            ctx.fillStyle =
-                "#caa83f";
-
-
-            ctx.beginPath();
-
-
-            ctx.arc(
-                coin.x,
-                coin.y,
-                6.5 *
-                pulse,
-                0,
-                Math.PI *
-                2
-            );
-
-
-            ctx.fill();
-
-
-            ctx.fillStyle =
-                "rgba(255,255,255,0.35)";
-
-
-            ctx.fillRect(
-                coin.x - 1,
-                coin.y - 4,
-                2,
-                8
-            );
-
-
-            ctx.restore();
-
+        if (
+            coin.collected
+        ) {
+            return;
         }
-    );
+
+
+        var pulse =
+
+            1 +
+
+            Math.sin(
+                now +
+                coin.phase
+            ) *
+
+            0.12;
+
+
+        var d =
+
+            player
+
+                ? distance(
+                    px,
+                    py,
+                    coin.x,
+                    coin.y
+                )
+
+                : 9999;
+
+
+        var near =
+
+            clamp(
+                1 -
+                d /
+                (
+                    screenMin() *
+                    0.30
+                ),
+                0,
+                1
+            );
+
+
+        ctx.save();
+
+
+        ctx.shadowBlur =
+           1 +
+            near * 7;
+
+        ctx.shadowColor = "#dfbc42";
+        ctx.fillStyle = "#caa83f";
+
+   
+
+
+        ctx.beginPath();
+
+
+        ctx.arc(
+            coin.x,
+            coin.y,
+            6.5 * pulse,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.fill();
+
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.30)";
+
+
+        ctx.fillRect(
+            coin.x - 1,
+            coin.y - 4,
+            2,
+            8
+        );
+
+
+        ctx.restore();
+
+    });
 
 }
 
 
 // =====================================================
-// رسم المفاتيح والبلورات
+// المفاتيح والبلورات
 // =====================================================
 
 function drawCollectibles() {
@@ -5269,49 +5990,94 @@ function drawCollectibles() {
         0.004;
 
 
-    collectibles.forEach(
-        function (item) {
+    collectibles.forEach(function (item) {
 
-            if (
-                item.collected
-            ) {
-
-                return;
-
-            }
+        if (
+            item.collected
+        ) {
+            return;
+        }
 
 
-            if (
-                item.kind ===
-                "crystal"
-            ) {
+        if (
+            item.kind ===
+            "crystal"
+        ) {
 
-                drawCrystal(
-                    item,
-                    now
-                );
+            drawCrystal(
+                item,
+                now
+            );
 
-            } else {
+        } else {
 
-                drawKey(
-                    item
-                );
-
-            }
+            drawKey(
+                item
+            );
 
         }
-    );
+
+    });
 
 }
 
 
 function drawKey(item) {
 
+    var px =
+        player
+
+            ? player.x +
+              player.width / 2
+
+            : 0;
+
+
+    var py =
+        player
+
+            ? player.y +
+              player.height / 2
+
+            : 0;
+
+
+    var d =
+
+        player
+
+            ? distance(
+                px,
+                py,
+                item.x,
+                item.y
+            )
+
+            : 9999;
+
+
+    var near =
+
+        clamp(
+            1 -
+            d /
+            (
+                screenMin() *
+                0.30
+            ),
+            0,
+            1
+        );
+
+
     ctx.save();
 
+    ctx.globalAlpha =
+        0.06 +
+        near * 0.94;
 
     ctx.shadowBlur =
-        14;
+        near * 6;
 
 
     ctx.shadowColor =
@@ -5330,8 +6096,7 @@ function drawKey(item) {
         item.y,
         7,
         0,
-        Math.PI *
-        2
+        Math.PI * 2
     );
 
 
@@ -5373,26 +6138,74 @@ function drawCrystal(
 ) {
 
     var bob =
+
         Math.sin(
             now +
             item.phase
         ) *
+
         3;
+
+
+    var px =
+        player
+
+            ? player.x +
+              player.width / 2
+
+            : 0;
+
+
+    var py =
+        player
+
+            ? player.y +
+              player.height / 2
+
+            : 0;
+
+
+    var d =
+
+        player
+
+            ? distance(
+                px,
+                py,
+                item.x,
+                item.y
+            )
+
+            : 9999;
+
+
+    var near =
+
+        clamp(
+            1 -
+            d /
+            (
+                screenMin() *
+                0.32
+            ),
+            0,
+            1
+        );
 
 
     ctx.save();
 
-
     ctx.translate(
         item.x,
-        item.y +
-        bob
-    );
+        item.y + bob
+        );
 
+    ctx.globalAlpha =
+        0.08 +
+        near * 0.92;
 
     ctx.shadowBlur =
-        22;
-
+        near * 7;
 
     ctx.shadowColor =
         "#7d6cff";
@@ -5437,9 +6250,7 @@ function drawCrystal(
 
     ctx.closePath();
 
-
     ctx.fill();
-
 
     ctx.restore();
 
@@ -5452,86 +6263,186 @@ function drawCrystal(
 
 function drawChests() {
 
-    chests.forEach(
-        function (chest) {
+    var px =
+        player
+            ? player.x + player.width / 2
+            : 0;
 
-            ctx.save();
-
-
-            ctx.fillStyle =
-
-                chest.opened
-
-                    ? "#39352d"
-
-                    : "#745328";
+    var py =
+        player
+            ? player.y + player.height / 2
+            : 0;
 
 
-            ctx.fillRect(
-                chest.x,
-                chest.y,
-                chest.width,
-                chest.height
+    chests.forEach(function (chest) {
+
+        var chestX =
+            chest.x +
+            chest.width / 2;
+
+        var chestY =
+            chest.y +
+            chest.height / 2;
+
+        var d =
+            player
+                ? distance(
+                    px,
+                    py,
+                    chestX,
+                    chestY
+                )
+                : 9999;
+
+        var near =
+            clamp(
+                1 -
+                d /
+                (
+                    screenMin() *
+                    0.32
+                ),
+                0,
+                1
             );
 
+        var p =
+            clamp(
+                chest.opening || 0,
+                0,
+                1
+            );
+
+        var lidLift =
+            p *
+            chest.height *
+            0.34;
+
+
+        ctx.save();
+
+        ctx.globalAlpha =
+            chest.opened
+                ? 0.35
+                : 0.07 +
+                  near * 0.93;
+
+
+        ctx.fillStyle =
+
+            chest.opened
+
+                ? "#39352d"
+
+                : "#745328";
+
+
+        ctx.fillRect(
+            chest.x,
+
+            chest.y +
+            chest.height *
+            0.24,
+
+            chest.width,
+
+            chest.height *
+            0.76
+        );
+
+
+        ctx.fillStyle =
+
+            chest.opened
+
+                ? "#4b463c"
+
+                : "#b79040";
+
+
+        ctx.fillRect(
+            chest.x,
+
+            chest.y -
+            lidLift,
+
+            chest.width,
+
+            chest.height *
+            0.30
+        );
+
+
+        if (
+            !chest.opened
+        ) {
 
             ctx.fillStyle =
-
-                chest.opened
-
-                    ? "#4b463c"
-
-                    : "#b79040";
+                "#d5bd64";
 
 
             ctx.fillRect(
-
-                chest.x,
+                chest.x +
+                chest.width / 2 -
+                3,
 
                 chest.y +
                 chest.height *
-                0.18,
+                0.48,
 
-                chest.width,
+                6,
+                7
+            );
 
-                chest.height *
-                0.17
+        }
 
+
+        if (
+            p > 0 &&
+            p < 1
+        ) {
+
+            ctx.fillStyle =
+
+                "rgba(230,205,105," +
+
+                (
+                    p *
+                    0.18
+                ) +
+
+                ")";
+
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+                chest.x +
+                chest.width / 2,
+
+                chest.y,
+
+                chest.width *
+                (
+                    0.5 +
+                    p * 0.45
+                ),
+
+                0,
+
+                Math.PI * 2
             );
 
 
-            if (
-                !chest.opened
-            ) {
-
-                ctx.fillStyle =
-                    "#d5bd64";
-
-
-                ctx.fillRect(
-
-                    chest.x +
-                    chest.width /
-                    2 -
-                    3,
-
-                    chest.y +
-                    chest.height *
-                    0.43,
-
-                    6,
-
-                    7
-
-                );
-
-            }
-
-
-            ctx.restore();
+            ctx.fill();
 
         }
-    );
+
+
+        ctx.restore();
+
+    });
 
 }
 
@@ -5542,12 +6453,8 @@ function drawChests() {
 
 function drawDoor() {
 
-    if (
-        !exitDoor
-    ) {
-
+    if (!exitDoor) {
         return;
-
     }
 
 
@@ -5595,19 +6502,10 @@ function drawDoor() {
 
 
     ctx.fillRect(
-
-        exitDoor.x +
-        7,
-
-        exitDoor.y +
-        7,
-
-        exitDoor.width -
-        14,
-
-        exitDoor.height -
-        14
-
+        exitDoor.x + 7,
+        exitDoor.y + 7,
+        exitDoor.width - 14,
+        exitDoor.height - 14
     );
 
 
@@ -5619,7 +6517,6 @@ function drawDoor() {
 
 
     ctx.arc(
-
         exitDoor.x +
         exitDoor.width -
         12,
@@ -5629,12 +6526,8 @@ function drawDoor() {
         2,
 
         3,
-
         0,
-
-        Math.PI *
-        2
-
+        Math.PI * 2
     );
 
 
@@ -5643,10 +6536,7 @@ function drawDoor() {
 
     ctx.restore();
 
-}
-
-
-// =====================================================
+}// =====================================================
 // رسم اللاعب
 // =====================================================
 
@@ -5658,40 +6548,28 @@ function drawPlayer() {
 
 
     if (
-
         player.invincible > 0 &&
-
         Math.floor(
-            player.invincible /
-            5
-        ) %
-        2 ===
-        0
-
+            player.invincible / 5
+        ) % 2 === 0
     ) {
-
         return;
-
     }
 
 
     var cx =
         player.x +
-        player.width /
-        2;
+        player.width / 2;
 
 
     var bodyY =
-        player.y +
-        15;
+        player.y + 15;
 
 
     ctx.save();
 
 
-    if (
-        player.hidden
-    ) {
+    if (player.hidden) {
 
         ctx.globalAlpha =
             0.42;
@@ -5707,34 +6585,23 @@ function drawPlayer() {
 
 
     ctx.ellipse(
-
         cx,
-
         player.y +
         player.height +
         4,
-
         player.width *
         0.52,
-
         6,
-
         0,
-
         0,
-
-        Math.PI *
-        2
-
+        Math.PI * 2
     );
 
 
     ctx.fill();
 
 
-    if (
-        player.shield
-    ) {
+    if (player.shield) {
 
         ctx.strokeStyle =
             "rgba(100,185,255,0.72)";
@@ -5748,21 +6615,13 @@ function drawPlayer() {
 
 
         ctx.arc(
-
             cx,
-
             player.y +
-            player.height /
-            2,
-
+            player.height / 2,
             player.width *
             0.92,
-
             0,
-
-            Math.PI *
-            2
-
+            Math.PI * 2
         );
 
 
@@ -5772,7 +6631,6 @@ function drawPlayer() {
 
 
     var legSwing =
-
         Math.sin(
             player.walkCycle
         ) *
@@ -5795,26 +6653,19 @@ function drawPlayer() {
 
 
     ctx.moveTo(
-
         cx - 4,
-
         player.y +
         player.height -
         8
-
     );
 
 
     ctx.lineTo(
-
-        cx -
-        5 +
+        cx - 5 +
         legSwing,
-
         player.y +
         player.height +
         1
-
     );
 
 
@@ -5825,26 +6676,19 @@ function drawPlayer() {
 
 
     ctx.moveTo(
-
         cx + 4,
-
         player.y +
         player.height -
         8
-
     );
 
 
     ctx.lineTo(
-
-        cx +
-        5 -
+        cx + 5 -
         legSwing,
-
         player.y +
         player.height +
         1
-
     );
 
 
@@ -5856,24 +6700,18 @@ function drawPlayer() {
 
 
     ctx.fillRect(
-
-        player.x +
-        5,
-
+        player.x + 5,
         bodyY,
-
         Math.max(
             10,
             player.width -
             10
         ),
-
         Math.max(
             13,
             player.height -
             18
         )
-
     );
 
 
@@ -5886,12 +6724,10 @@ function drawPlayer() {
 
     ctx.arc(
         cx,
-        player.y +
-        10,
+        player.y + 10,
         9,
         0,
-        Math.PI *
-        2
+        Math.PI * 2
     );
 
 
@@ -5899,7 +6735,6 @@ function drawPlayer() {
 
 
     var eyeX =
-
         clamp(
             player.facingX,
             -1,
@@ -5909,7 +6744,6 @@ function drawPlayer() {
 
 
     var eyeY =
-
         clamp(
             player.facingY,
             -1,
@@ -5926,22 +6760,13 @@ function drawPlayer() {
 
 
     ctx.arc(
-
-        cx -
-        3 +
-        eyeX,
-
+        cx - 3 + eyeX,
         player.y +
         9 +
         eyeY,
-
         1.2,
-
         0,
-
-        Math.PI *
-        2
-
+        Math.PI * 2
     );
 
 
@@ -5952,22 +6777,13 @@ function drawPlayer() {
 
 
     ctx.arc(
-
-        cx +
-        3 +
-        eyeX,
-
+        cx + 3 + eyeX,
         player.y +
         9 +
         eyeY,
-
         1.2,
-
         0,
-
-        Math.PI *
-        2
-
+        Math.PI * 2
     );
 
 
@@ -5989,19 +6805,13 @@ function drawMonsters() {
         function (monster) {
 
             var cx =
-
                 monster.x +
-
-                monster.width /
-                2;
+                monster.width / 2;
 
 
             var cy =
-
                 monster.y +
-
-                monster.height /
-                2;
+                monster.height / 2;
 
 
             ctx.save();
@@ -6027,7 +6837,8 @@ function drawMonsters() {
 
 
             if (
-                frozenTimer > 0
+                frozenTimer >
+                0
             ) {
 
                 ctx.shadowBlur =
@@ -6057,19 +6868,11 @@ function drawMonsters() {
 
 
             ctx.arc(
-
                 cx,
-
                 cy,
-
-                monster.width /
-                2,
-
+                monster.width / 2,
                 0,
-
-                Math.PI *
-                2
-
+                Math.PI * 2
             );
 
 
@@ -6092,19 +6895,12 @@ function drawMonsters() {
 
 
                 ctx.arc(
-
                     cx,
-
                     cy,
-
                     monster.width *
                     0.36,
-
                     0,
-
-                    Math.PI *
-                    2
-
+                    Math.PI * 2
                 );
 
 
@@ -6148,20 +6944,12 @@ function drawMonsters() {
 
 
             ctx.arc(
-
                 cx -
                 eyeOffset,
-
-                cy -
-                5,
-
+                cy - 5,
                 eyeSize,
-
                 0,
-
-                Math.PI *
-                2
-
+                Math.PI * 2
             );
 
 
@@ -6172,20 +6960,12 @@ function drawMonsters() {
 
 
             ctx.arc(
-
                 cx +
                 eyeOffset,
-
-                cy -
-                5,
-
+                cy - 5,
                 eyeSize,
-
                 0,
-
-                Math.PI *
-                2
-
+                Math.PI * 2
             );
 
 
@@ -6208,18 +6988,11 @@ function drawMonsters() {
 
 
                 ctx.arc(
-
                     cx,
-
-                    cy +
-                    10,
-
+                    cy + 10,
                     12,
-
                     0,
-
                     Math.PI
-
                 );
 
 
@@ -6237,7 +7010,7 @@ function drawMonsters() {
 
 
 // =====================================================
-// الظلام والكشاف
+// الظلام
 // =====================================================
 
 function drawDarkness() {
@@ -6268,15 +7041,20 @@ function drawDarkness() {
 
         config.lightRadius *
 
-        config.lightRadius *
-
         upgradeMultiplier;
 
 
-    if  (window.innerWidth < 1000) {
+    // مجال رؤية أكبر للجوال
+    if (
+        window.innerWidth <
+        1000
+    ) {
 
-        radius *= 1.65;
+        radius *=
+            1.55;
+
     }
+
 
     if (
         config.flicker
@@ -6300,28 +7078,22 @@ function drawDarkness() {
 
     var x =
         player.x +
-        player.width /
-        2;
+        player.width / 2;
 
 
     var y =
         player.y +
-        player.height /
-        2;
+        player.height / 2;
 
 
     var gradient =
-
         ctx.createRadialGradient(
-
             x,
             y,
             22,
-
             x,
             y,
             radius
-
         );
 
 
@@ -6333,7 +7105,7 @@ function drawDarkness() {
 
     gradient.addColorStop(
         0.38,
-        "rgba(0,0,0,0.08)"
+        "rgba(0,0,0,0.07)"
     );
 
 
@@ -6345,7 +7117,7 @@ function drawDarkness() {
 
     gradient.addColorStop(
         1,
-        "rgba(0,0,0,0.90)"
+        "rgba(0,0,0,0.92)"
     );
 
 
@@ -6361,66 +7133,24 @@ function drawDarkness() {
     );
 
 
-    var closest =
-        Infinity;
-
-
-    monsters.forEach(
-        function (monster) {
-
-            closest =
-
-                Math.min(
-
-                    closest,
-
-                    distance(
-
-                        player.x,
-
-                        player.y,
-
-                        monster.x,
-
-                        monster.y
-
-                    )
-
-                );
-
-        }
-    );
-
-
-    var dangerRange =
-        screenMin() *
-        0.24;
-
-
+    // احمرار الشاشة أثناء المطاردة
     if (
 
-        closest <
-        dangerRange &&
+        chaseIntensity >
+        0.02 &&
 
         !player.hidden
 
     ) {
-
-        var danger =
-
-            1 -
-
-            closest /
-            dangerRange;
-
 
         ctx.fillStyle =
 
             "rgba(120,0,0," +
 
             (
-                danger *
-                0.13
+                0.025 +
+                chaseIntensity *
+                0.14
             ) +
 
             ")";
@@ -6435,6 +7165,55 @@ function drawDarkness() {
 
     }
 
+
+    // تحذير اندفاع الزعيم
+    monsters.forEach(
+        function (monster) {
+
+            if (
+
+                monster.isBoss &&
+
+                monster.dashWarning >
+                0
+
+            ) {
+
+                var warningPulse =
+
+                    0.035 +
+
+                    Math.abs(
+                        Math.sin(
+                            performance.now() *
+                            0.02
+                        )
+                    ) *
+
+                    0.045;
+
+
+                ctx.fillStyle =
+
+                    "rgba(170,20,20," +
+
+                    warningPulse +
+
+                    ")";
+
+
+                ctx.fillRect(
+                    0,
+                    0,
+                    canvas.width,
+                    canvas.height
+                );
+
+            }
+
+        }
+    );
+
 }
 
 
@@ -6445,7 +7224,8 @@ function drawDarkness() {
 function applyScreenShake() {
 
     if (
-        screenShake <= 0
+        screenShake <=
+        0
     ) {
 
         return;
@@ -6471,7 +7251,10 @@ function applyScreenShake() {
 
 
     screenShake *=
-        0.86;
+        Math.pow(
+            0.86,
+            frameScale
+        );
 
 
     if (
@@ -6512,12 +7295,16 @@ function update() {
 
     updateMonsters();
 
+    updateChaseEffects();
+
 
     checkCollectibles();
 
     checkCoins();
 
     checkChests();
+
+    updateChests();
 
     checkDoor();
 
@@ -6528,7 +7315,7 @@ function update() {
 
 
 // =====================================================
-// رسم اللعبة
+// الرسم
 // =====================================================
 
 function draw() {
@@ -6602,7 +7389,37 @@ function draw() {
 // Game Loop
 // =====================================================
 
-function gameLoop() {
+function gameLoop(time) {
+
+    if (
+        !lastFrameTime
+    ) {
+
+        lastFrameTime =
+            time;
+
+    }
+
+
+    var delta =
+
+        time -
+
+        lastFrameTime;
+
+
+    lastFrameTime =
+        time;
+
+
+    frameScale =
+        clamp(
+            delta /
+            16.6667,
+            0.45,
+            2.5
+        );
+
 
     update();
 
@@ -6624,4 +7441,6 @@ updateMenus();
 
 showMainMenu();
 
-gameLoop();
+requestAnimationFrame(
+    gameLoop
+);
